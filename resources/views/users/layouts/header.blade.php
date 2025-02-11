@@ -174,6 +174,19 @@ h1, h2, h3 {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Subtle depth */
 }
 
+.allMessages-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #ffb3c1; /* Pastel pink */
+  color: #4a4a4a;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-top: 124px;
+  margin-left: 50px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .main {
@@ -430,6 +443,7 @@ h1, h2, h3 {
   border: 1px solid white;
   border-radius: 4px;
   color: black;
+  font-size: 11px;
 }
 
 /* .dropdown:hover .dropdown-content {
@@ -616,12 +630,23 @@ h1, h2, h3 {
             color: #aaa;
         }
 
+        .unread-count {
+          font-size: 10px;
+          color: white;
+          border: 1px #11eb11;
+          border-radius: 50%;
+          background-color: #11eb11;
+          width: 16px;
+          text-align: center;
+        }
+
         .chat-area {
             flex-grow: 1;
             width: 70%;
             background-color: #e5ddd5;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
         .chat-area-header {
@@ -698,6 +723,23 @@ h1, h2, h3 {
             background-color: #1db954;
         }
 
+        .chat-placeholder {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100%;
+          text-align: center;
+          background-color: #f9f9f9;
+          padding: 20px;
+        }
+
+        .start-chat-with-user {
+          font-size: 18px;
+          color: #555;
+          font-weight: 500;
+        }
+
         /* .message-time {
             font-size: 12px;
             color: gray;
@@ -764,25 +806,33 @@ h1, h2, h3 {
             padding: 8px 12px;
             border-radius: 10px;
         }
-        
-
-
-
-
-
-
-
 
          /* edit delete */
          .message .fa-ellipsis-vertical {
+            /* cursor: pointer;
+            margin-left: 10px; */
+            position: absolute;
+            right: -25px;  /* Moves icon to the left outside the message */
+            top: 50%;
+            transform: translateY(-50%);
             cursor: pointer;
-            margin-left: 10px;
+            color: gray;
         }
+
+
+        .message {
+            position: relative; /* Ensures relative positioning for absolute child elements */
+            padding: 8px 12px;
+            border-radius: 10px;
+            word-wrap: break-word;
+            max-width: 100%;
+        }
+
 
         .popup-menu {
             position: absolute;
-            bottom: 60%; /* Position above the icon */
-            right: 10px;
+            bottom: 43%; /* Position above the icon */
+            right: -17px;
             /* background-color: #fff; */
             border: 1px solid #ddd;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
@@ -793,6 +843,7 @@ h1, h2, h3 {
 
             /* Hide by default */
             display: none;
+            color: red;
         }
 
         .popup-menu.active {
@@ -809,7 +860,7 @@ h1, h2, h3 {
             border-radius: 5px;
             margin-top: 10px;
             text-align: center;
-            border: 2px solid black;
+            /* border: ; */
             align-content: center;
             align-items: center;
             position: relative; /* Important for positioning the close icon */

@@ -9,6 +9,11 @@
             <input type="text" name="title" id="search"  placeholder="Enter Username">
             <ul id="autocomplete-results" class="autocomplete-results"></ul>
             <div id="selected-user" class="selected-user"></div>
+
+            <!-- See All Messages Button -->
+            <a href="{{ route('chats.all') }}" class="see-all-messages">
+                <button class="allMessages-button">See All Messages</button>
+            </a>
     </aside>
 
     <!-- Events Section -->
@@ -70,7 +75,7 @@
 
                       {{-- <form method="POST" action="{{ route('connect.end', $connection->id) }}">
                         @csrf --}}
-                        <button class="red-button" id="end-chat" data-user-id="{{ $user->id }}" data-connection-id="{{ $connection->id }}">End Chat</button>
+                        <button class="red-button" id="end-chat" data-user-id="{{ $user->id }}" data-connection-id="{{ $connection->id }}">Disconnect</button>
                       {{-- </form> --}}
                     </div>
                 @endif
@@ -224,10 +229,45 @@
 
 
         // End Chat (Delete all chat between two users)
-        $('#end-chat').on('click', function() {
+        // $('#end-chat').on('click', function() {
+        //     const userId = $(this).data('user-id');
+        //     const connectionId = $(this).data('connection-id');
+        //     const baseURL = "{{ url('/') }}";
+
+        //     $.ajax({
+        //         url: `${baseURL}/deleteChat/${userId}`,
+        //         type: 'DELETE',
+        //         data: {
+        //             _token: $('meta[name="csrf-token"]').attr('content'),
+        //             chatUserId: userId
+        //         },
+        //         success: function (response) {
+        //             console.log("Messages deleted successfully for user: ", userId);
+
+        //             // Optionally, you can remove the connection item from the DOM or update it.
+        //             const connectionCard = $(`#connection-${connectionId}`);
+                    
+        //             // Remove the decline/accept buttons
+        //             connectionCard.find('.accept-decline-container').remove();
+                    
+        //             // Add the "Connect" button back
+        //             connectionCard.find('div').prepend(`
+        //                 <a href="/connect/send/${connectionCard.data('user-id')}">
+        //                     <button class="view-details-button">Connect</button>
+        //                 </a>
+        //             `);
+        //         },
+        //         error: function (xhr) {
+        //             alert("An error occurred while deleting all messages");
+        //         }
+        //     })
+        // })
+
+        $(document).on('click', '#end-chat', function() {
             const userId = $(this).data('user-id');
             const connectionId = $(this).data('connection-id');
             const baseURL = "{{ url('/') }}";
+            const connectionCard = $(`#connection-${connectionId}`);
 
             $.ajax({
                 url: `${baseURL}/deleteChat/${userId}`,
@@ -236,15 +276,12 @@
                     _token: $('meta[name="csrf-token"]').attr('content'),
                     chatUserId: userId
                 },
-                success: function (response) {
-                    console.log("Messages deleted successfully for user: ", userId);
-
-                    // Optionally, you can remove the connection item from the DOM or update it.
-                    const connectionCard = $(`#connection-${connectionId}`);
+                success: function(response) {
+                    console.log("Messages deleted successfully for user:", userId);
                     
-                    // Remove the decline/accept buttons
+                    // Remove the chat buttons
                     connectionCard.find('.accept-decline-container').remove();
-                    
+
                     // Add the "Connect" button back
                     connectionCard.find('div').prepend(`
                         <a href="/connect/send/${connectionCard.data('user-id')}">
@@ -252,13 +289,10 @@
                         </a>
                     `);
                 },
-                error: function (xhr) {
+                error: function(xhr) {
                     alert("An error occurred while deleting all messages");
                 }
-            })
-        })
+            });
+        });
     });
 </script>
-
-  
-  

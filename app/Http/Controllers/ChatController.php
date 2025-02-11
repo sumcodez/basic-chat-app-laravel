@@ -37,6 +37,12 @@ class ChatController extends Controller
             // If no connection found, redirect to homepage with a message
             return redirect()->route('users.all')->with('error', 'Connection no longer exists.');
         }
+
+        // **Mark all messages from this user as read**
+        Messages::where('sender_id', $user->id)
+            ->where('receiver_id', $current_user->id)
+            ->where('read_status', 0)
+            ->update(['read_status' => 1]);
     
         // Fetch accepted connections where the current user is either sender or receiver
         $connections = Connections::where(function ($query) use ($current_user) {
@@ -65,6 +71,29 @@ class ChatController extends Controller
                 ->latest('created_at') // Order by latest message
                 ->first();
 
+
+            // Get last unread message time
+            $latestUnreadMessage = Messages::where('sender_id', $user->id)
+                ->where('receiver_id', $current_user->id)
+                ->where('read_status', 0)
+                ->latest('created_at')
+                ->first();
+
+            // Store media type
+            $mediaType = $lastMessage ? $lastMessage->media_type : null;
+
+
+            // Format message preview
+            if ($lastMessage) {
+                if ($lastMessage->media_type !== 'text') {
+                    $messagePreview = strtoupper($lastMessage->media_type) . "some media"; // Show media type
+                } else {
+                    $messagePreview = $lastMessage->message;
+                }
+            } else {
+                $messagePreview = null;
+            }
+
             // Count unread messages
             $unreadCount = Messages::where('sender_id', $user->id)
                 ->where('receiver_id', $current_user->id)
@@ -75,6 +104,8 @@ class ChatController extends Controller
             $user->last_message = $lastMessage ? $lastMessage->message : null;
             $user->last_message_time = $lastMessage ? $lastMessage->created_at->format('h:i A') : null;
             $user->unreadCount = $unreadCount;
+            $user->latestUnreadTime = $latestUnreadMessage ? $latestUnreadMessage->created_at->format('h:i A') : null;
+            $user->media_type = $mediaType;
             
             return $user;
         });
@@ -90,6 +121,106 @@ class ChatController extends Controller
             'connected_users' => $connectedUsersList, // Include last message
         ]);
     }
+
+
+    public function showAllChats()
+    {
+        $current_user = Auth::user();
+    
+        if (!$current_user) {
+            return redirect()->route('login')->with('error', 'Please log in to access the chat.');
+        }
+    
+        // Fetch all accepted connections
+        $connections = Connections::where(function ($query) use ($current_user) {
+            $query->where('sender_id', $current_user->id)
+                ->orWhere('receiver_id', $current_user->id);
+        })
+        ->where('status', 'accepted')
+        ->get();
+    
+        // Extract connected user IDs
+        $userIds = $connections->map(function ($connection) use ($current_user) {
+            return $connection->sender_id == $current_user->id ? $connection->receiver_id : $connection->sender_id;
+        });
+    
+        // Fetch connected users
+        $connectedUsersList = User::whereIn('id', $userIds)->get();
+    
+        // Get last message and unread counts
+        $connectedUsersList = $connectedUsersList->map(function ($user) use ($current_user) {
+            // Get last message
+            $lastMessage = Messages::where(function ($query) use ($current_user, $user) {
+                    $query->where('sender_id', $current_user->id)->where('receiver_id', $user->id);
+                })
+                ->orWhere(function ($query) use ($current_user, $user) {
+                    $query->where('sender_id', $user->id)->where('receiver_id', $current_user->id);
+                })
+                ->latest('created_at')
+                ->first();
+    
+            // Get last unread message time
+            $latestUnreadMessage = Messages::where('sender_id', $user->id)
+                ->where('receiver_id', $current_user->id)
+                ->where('read_status', 0)
+                ->latest('created_at')
+                ->first();
+
+
+
+            // Store media type
+            $mediaType = $lastMessage ? $lastMessage->media_type : null;
+
+            // Format message preview
+            if ($lastMessage) {
+                if ($lastMessage->media_type !== 'text') {
+                    $messagePreview = strtoupper($lastMessage->media_type) . "some media"; // Show media type
+                } else {
+                    $messagePreview = $lastMessage->message;
+                }
+            } else {
+                $messagePreview = null;
+            }
+    
+
+            // Count unread messages
+            $unreadCount = Messages::where('sender_id', $user->id)
+                ->where('receiver_id', $current_user->id)
+                ->where('read_status', 0)
+                ->count();
+    
+            // Store data in user object
+            $user->last_message = $lastMessage ? $lastMessage->message : null;
+            $user->last_message_time = $lastMessage ? $lastMessage->created_at->format('h:i A') : null;
+            $user->unreadCount = $unreadCount;
+            $user->latestUnreadTime = $latestUnreadMessage ? $latestUnreadMessage->created_at->format('h:i A') : null;
+            $user->media_type = $mediaType;
+    
+            return $user;
+        });
+    
+        // **Sorting logic**
+        $connectedUsersList = $connectedUsersList->sort(function ($a, $b) {
+            // If one user has unread messages and the other doesn't, prioritize the one with unread messages
+            if ($a->unreadCount > 0 && $b->unreadCount == 0) return -1;
+            if ($a->unreadCount == 0 && $b->unreadCount > 0) return 1;
+    
+            // If both have unread messages, sort by the latest unread message time
+            if ($a->unreadCount > 0 && $b->unreadCount > 0) {
+                return $b->latestUnreadTime <=> $a->latestUnreadTime;
+            }
+    
+            // If no unread messages, sort by last message time
+            return $b->last_message_time <=> $a->last_message_time;
+        });
+    
+        return view('users.chat', [
+            'current_user' => $current_user,
+            'connected_users' => $connectedUsersList,
+            'chat_user' => null, // No specific user selected
+        ]);
+    }
+    
     
 
     // Get messages between two users
@@ -264,7 +395,7 @@ class ChatController extends Controller
                 'media.max' => 'The uploaded file must not exceed 3MB.',
             ]);
 
-            $mediaType = null;
+            $mediaType = 'text';
             $mediaUrl = null;
 
             if ($request->hasFile('media')) {

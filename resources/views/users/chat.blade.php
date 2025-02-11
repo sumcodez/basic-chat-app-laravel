@@ -13,27 +13,38 @@
         </div>                                                                                                                                                                                                                                                                                  
         <div class="search-bar">
             {{-- <input type="text" placeholder="Search or start new chat"> --}}
-            <p style="text-align: center;">You are now connected with {{ $chat_user->first_name }} {{ $chat_user->last_name }}</p>
+            @if ($chat_user)
+                <p style="text-align: center;">You are now connected with {{ $chat_user->first_name }} {{ $chat_user->last_name }}</p>
+            @else
+                <p style="text-align: center;">All Connected Users</p>
+            @endif
+            
         </div>
         <div class="chats">
 
             @foreach ($connected_users as $chatUser)
 
-                    <div class="chat" data-user-id="{{ $chatUser->id }}">
-                        <img src="{{ asset($chatUser->profile_picture ?? 'default_image/defPic.jpg') }}" alt="Profile" class="chat-avatar">
-                        <div class="chat-info">
-                            <h4>{{ $chatUser->first_name }} {{ $chatUser->last_name }}</h4>
+                <div class="chat" data-user-id="{{ $chatUser->id }}">
+                    <img src="{{ asset($chatUser->profile_picture ?? 'default_image/defPic.jpg') }}" alt="Profile" class="chat-avatar">
+                    <div class="chat-info">
+                        <h4>{{ $chatUser->first_name }} {{ $chatUser->last_name }}</h4>
+                        
+                        @if ($chatUser->media_type && $chatUser->media_type !== 'text')
+                            <p class="last-chat">{{ strtoupper($chatUser->media_type) }} <i class="fa-solid fa-paperclip"></i></p>
+                        @else
                             <p class="last-chat">{{ $chatUser->last_message }}</p>
-                        </div>
-                        <div>
-                            <div class="chat-time">{{ $chatUser->last_message_time }}</div>
-                            @if ($chatUser->unreadCount)
-                                <div class="chat-time">Undead SMS {{ $chatUser->unreadCount }}</div>
-                            @endif
-                        </div>
+                        @endif
                     </div>
+                    <div>
+                        <div class="chat-time">{{ $chatUser->last_message_time }}</div>
+                        @if ($chatUser->unreadCount)
+                            <div class="unread-count">{{ $chatUser->unreadCount }}</div>
+                        @endif
+                    </div>
+                </div>
                 
             @endforeach
+        
 
             {{-- <div class="chat">
                 <img src="{{ asset($chat_user->profile_picture ?? 'default_image/defPic.jpg') }}" alt="Profile" class="chat-avatar">
@@ -48,48 +59,71 @@
     </div>
 
     <div class="chat-area">
-        <div class="chat-area-header">
-            <img src="{{ asset($chat_user->profile_picture ?? 'default_image/defPic.jpg') }}" alt="Profile" class="chat-avatar">
-            <h3>{{ $chat_user->first_name }} {{ $chat_user->last_name }}</h3>
-            <button id="refresh-chat" class="refresh-button">
-                <lord-icon
-                    src="https://cdn.lordicon.com/mfblariy.json"
-                    trigger="click"
-                    style="width:35px;height:35px;">
-                </lord-icon>
-            </button>
-        </div>
-        <div class="chat-area-messages" id="chat-messages">
-            
-            <!-- Received Message -->
-            {{-- <div class="message-container received">
-                <div class="received-time"><span class="message-time">12:20</span></div>
-                <div class="message received" id="msg-received">Hello!hhhdvghdcdsvchsgdv</div>
-            </div> --}}
-
-            <!-- Sent Message -->
-            {{-- <div class="message-container sent">
-                <div class="sent-time"><span class="message-time">12:24</span></div>
-                <div class="message sent" id="msg-sent">
-                    <span class="message-text">hello</span>
-                    <i class="fa-solid fa-ellipsis-vertical" onclick="togglePopup(event)"></i>
-
-                    <div class="popup-menu">
-                        <div>Reply</div>
-                        <div>Forward</div>
-                        <div>Delete</div>
-                    </div>
-                </div>
-            </div> --}}
-            <!-- Add more messages as needed -->
-        </div>
-
-        <!-- Media Preview Container -->
-        <div id="media-preview-container" style="position: relative; display: inline-block; margin-top: 10px;">
-            <div id="media-preview" style="position: relative; display: inline-block;">
+        @if ($chat_user)
+            <div class="chat-area-header">
+                <img src="{{ asset($chat_user->profile_picture ?? 'default_image/defPic.jpg') }}" alt="Profile" class="chat-avatar">
+                <h3>{{ $chat_user->first_name }} {{ $chat_user->last_name }}</h3>
+                <button id="refresh-chat" class="refresh-button">
+                    <lord-icon
+                        src="https://cdn.lordicon.com/mfblariy.json"
+                        trigger="click"
+                        style="width:35px;height:35px;">
+                    </lord-icon>
+                </button>
             </div>
-            <!-- Close Icon -->
-            <i id="clear-media" class="fa-solid fa-xmark" style="
+            <div class="chat-area-messages" id="chat-messages">
+                
+                <!-- Received Message -->
+                {{-- <div class="message-container received">
+                    <div class="received-time"><span class="message-time">12:20</span></div>
+                    <div class="message received" id="msg-received">Hello!hhhdvghdcdsvchsgdv</div>
+                </div> --}}
+
+                <!-- Sent Message -->
+                {{-- <div class="message-container sent">
+                    <div class="sent-time"><span class="message-time">12:24</span></div>
+                    <div class="message sent" id="msg-sent">
+                        <span class="message-text">hello</span>
+                        <i class="fa-solid fa-ellipsis-vertical" onclick="togglePopup(event)"></i>
+
+                        <div class="popup-menu">
+                            <div>Reply</div>
+                            <div>Forward</div>
+                            <div>Delete</div>
+                        </div>
+                    </div>
+                </div> --}}
+                <!-- Add more messages as needed -->
+            </div>
+
+
+            <div id="hard-scroll" class="hard-scroll-btn" style="
+                display: none;
+                position: absolute;
+                bottom: 60px; /* Just above the chat input */
+                left: 50%;
+                transform: translateX(-50%);
+                background: white;
+                color: rgb(17, 17, 17);
+                padding: 20px;
+                border-radius: 50%;
+                cursor: pointer;
+                z-index: 1000;
+                box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+                height: 60px;
+                width: 60px;
+            ">
+                <i class="fa-solid fa-angle-down" style="margin-left:3px;"></i> <!-- Font Awesome Arrow Icon -->
+            </div>
+
+    
+
+
+            <!-- Media Preview Container -->
+            <div id="media-preview-container" style="position: relative; display: inline-block; margin-top: 10px;">
+                <div id="media-preview" style="position: relative; display: inline-block;">
+                                    <!-- Close Icon -->
+                <i id="clear-media" class="fa-solid fa-xmark" style="
                 position: absolute;
                 top: -4px;
                 right: 515px;
@@ -102,25 +136,51 @@
                 display: none;
                 z-index:9999;
             "></i>
-        </div>
+                </div>
+                <!-- Close Icon -->
+                {{-- <i id="clear-media" class="fa-solid fa-xmark" style="
+                    position: absolute;
+                    top: -4px;
+                    right: 515px;
+                    background: red;
+                    color: white;
+                    border-radius: 30%;
+                    padding: 5px;
+                    font-size: 14px;
+                    cursor: pointer;
+                    display: none;
+                    z-index:9999;
+                "></i> --}}
+            </div>
 
 
-        <div class="chat-input">
-            {{-- <input type="text" placeholder="Type a message" id="message">
-            <label for="attachment" class="attachment-btn" style="margin-top: 5px;"><i class="fa-solid fa-paperclip"></i></label>
-            <input type="file" id="attachment" accept="image/*,video/*,.pdf" style="display: none;">
-            <button id="send-message">Send</button> --}}
+            
 
-            <input type="text" placeholder="Type a message" id="message">
-            <input type="file" id="media" accept="image/*,video/*,.pdf" style="display: none;">
-            <button id="attach-file" style="background: none; color:black;"><i class="fa-solid fa-paperclip"></i></button>
-            {{-- <div id="media-preview" style="margin-top: 10px;"></div> --}}
-            <button id="send-message">Send</button>
-        </div>
+
+            <div class="chat-input">
+                {{-- <input type="text" placeholder="Type a message" id="message">
+                <label for="attachment" class="attachment-btn" style="margin-top: 5px;"><i class="fa-solid fa-paperclip"></i></label>
+                <input type="file" id="attachment" accept="image/*,video/*,.pdf" style="display: none;">
+                <button id="send-message">Send</button> --}}
+
+                <input type="text" placeholder="Type a message" id="message">
+                <input type="file" id="media" accept="image/*,video/*,.pdf" style="display: none;">
+                <button id="attach-file" style="background: none; color:black;"><i class="fa-solid fa-paperclip"></i></button>
+                {{-- <div id="media-preview" style="margin-top: 10px;"></div> --}}
+                <button id="send-message">Send</button>
+            </div>
+        @else
+            <div class="chat-placeholder">
+                <p class="start-chat-with-user">Select a chat to start messaging</p>
+            </div>
+        @endif
     </div>
 </div>
+@if ($chat_user)
 <input type="hidden" id="current-user-id" value="{{ auth()->id() }}">
 <input type="hidden" id="chat-user-id" value="{{ $chat_user->id }}">
+@endif
+
 
 
 
@@ -260,10 +320,18 @@
         }
 
         // Call the function (fetch last 10 chat) when page is refreshed 
-        fetchMessages();
+        //fetchMessages();
 
         // Refresh chat messages on button click (call the function for fetch last 10 chat)
-        $('#refresh-chat').on('click', fetchMessages);
+        $('#refresh-chat').on('click', function(){
+            offset = 10;
+            fetchMessages();
+
+             // Scroll to the bottom of the chat container
+            setTimeout(function () {
+                $('#chat-messages').animate({ scrollTop: $('#chat-messages')[0].scrollHeight }, 500);
+            }, 1000); // Small delay to ensure messages are loaded before scrolling
+        });
         
         // Handle Delete Button Click
         $(document).on('click', '.delete-message', function () {
@@ -339,20 +407,34 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     let previewHTML = '';
+                    let clearMediaButton = `
+                    <i id="clear-media" class="fa-solid fa-xmark" style="
+                        position: absolute;
+                        top: 2px;
+                        right: 0px;
+                        background: red;
+                        color: white;
+                        border-radius: 20%;
+                        padding: 3px;
+                        font-size: 14px;
+                        cursor: pointer;
+                        display: none;
+                        z-index:9999;
+                    "></i>`;
 
                     // Get file extension
                     const extension = file.name.split('.').pop().toLowerCase();
 
                     // Generate preview
                     if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
-                        previewHTML = `<img src="${e.target.result}" alt="Preview" class="media-preview" style="max-width: 200px; border-radius: 5px;">`;
+                        previewHTML = `<img src="${e.target.result}" alt="Preview" class="media-preview" style="max-width: 200px; border-radius: 5px;"> ${clearMediaButton}`;
                     } else if (['mp4', 'mov', 'avi'].includes(extension)) {
                         previewHTML = `<video controls class="media-preview" style="max-width: 200px; border-radius: 5px;">
                                             <source src="${e.target.result}" type="video/${extension}">
                                             Your browser does not support the video tag.
-                                        </video>`;
+                                        </video> ${clearMediaButton}`;
                     } else if (extension === 'pdf') {
-                        previewHTML = `<a href="${e.target.result}" target="_blank" class="media-preview" style="color: blue; text-decoration: underline;">View PDF</a>`;
+                        previewHTML = `<a href="${e.target.result}" target="_blank" class="media-preview" style="color: blue; text-decoration: underline;">View PDF</a> ${clearMediaButton}`;
                     }
 
                     // Show the preview
@@ -368,13 +450,21 @@
         });
 
 
-        // Clear media input when close button is clicked
-        $('#clear-media').on('click', function() {
+        // Clear media input when close button is clicked (delegated event handler)
+        $(document).on('click', '#clear-media', function () {
+            console.log("Clear media button is clicked");
             $('#send-message').hide();
-            $('#media').val('');
-            $('#media-preview').empty();
-            $(this).hide(); // Hide close button
-            $('#media-preview-container').hide();
+            $('#media').val(''); // Reset input
+            $('#media-preview').empty(); // Clear preview
+            $('#media-preview-container').hide(); // Hide container
+        });
+
+
+        $('#message').keypress(function (event) {
+            if (event.which === 13 && !event.shiftKey) { // Check if Enter is pressed without Shift
+                event.preventDefault(); // Prevent new line in input field
+                $('#send-message').click(); // Trigger the send button click
+            }
         });
 
         // Send message and/or media when the send button is clicked
@@ -419,6 +509,11 @@
                     // $('#media-preview-container').hide();
 
                     fetchMessages(); // Fetch last 10 conversation
+
+                    // Scroll to the bottom of the chat container
+                    setTimeout(function () {
+                        $('#chat-messages').animate({ scrollTop: $('#chat-messages')[0].scrollHeight }, 500);
+                    }, 300); // Small delay to ensure messages are loaded before scrolling
                 },
                 error: function(xhr, status, error) {
                     console.log('AJAX error:', status, error);
@@ -446,13 +541,18 @@
     });
 </script>
 
+
+
 <script>
-    let offset = 0;
+    var offset = 0;
     const limit = 10;
     let isLoading = false;
     const chatContainer = document.getElementById("chat-messages");
     const senderId = document.getElementById('current-user-id').value;  // Logged-in user
     const receiverId = document.getElementById('chat-user-id').value;   // Chat partner
+
+    let scrollCount = 0;
+    const hardScrollBtn = document.getElementById("hard-scroll");
 
     const baseURL = "{{ url('/') }}";
 
@@ -465,6 +565,7 @@
             const response = await fetch(`${baseURL}/fetch-messages?contact_id=${receiverId}&offset=${offset}`);
             const messages = await response.json();
             console.log("Messages for infinite scrolling: ", messages);
+            console.log("Current offset", offset);
             
             if (messages.length > 0) {
                 offset += limit; // Increase offset for next scroll
@@ -509,14 +610,26 @@
                 const extension = mediaUrl.split('.').pop().toLowerCase();
                 
                 if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
-                    return `<img src="${mediaUrl}" alt="Uploaded Image" class="message-image" style="max-width: 200px; border-radius: 5px;">`;
+                    return `
+                        <div class="media-image-container" style="max-width: 200px; border-radius: 5px;">
+                            <img src="${mediaUrl}" alt="Uploaded Image" class="message-image" style="width: 100%; border-radius: 5px;">
+                        </div>
+                    `;
                 } else if (['mp4', 'mov', 'avi'].includes(extension)) {
-                    return `<video controls class="message-video" style="max-width: 200px; border-radius: 5px;">
+                    return `
+                        <div class="media-container" style="max-width: 200px; border-radius: 5px;">
+                            <video controls class="message-video" style="width: 100%; border-radius: 5px;">
                                 <source src="${mediaUrl}" type="video/${extension}">
                                 Your browser does not support the video tag.
-                            </video>`;
+                            </video>
+                        </div>
+                    `;
                 } else if (extension === 'pdf') {
-                    return `<a href="${mediaUrl}" target="_blank" class="message-pdf" style="color: blue; text-decoration: underline;">View PDF</a>`;
+                    return `
+                        <div class="media-container">
+                            <a href="${mediaUrl}" target="_blank" class="message-pdf" style="color: blue; text-decoration: underline;">View PDF</a>
+                        </div>
+                    `;
                 }
                 return '';
             }
@@ -525,7 +638,7 @@
             let messageButtons = '';
             if (message.sender_id == senderId) {
                 messageButtons = `
-                    <i class="fa-solid fa-ellipsis-vertical" onclick="togglePopup(event)"></i> <!-- 3-dot icon -->
+                    <i class="fa-solid fa-ellipsis-vertical" onclick="togglePopup(event)" id="three-dot"></i> <!-- 3-dot icon -->
                     <div class="popup-menu">
                         <div class="delete-message" data-message-id="${message.id}"><i class="fa-solid fa-trash"></i></div>
                     </div>
@@ -539,8 +652,8 @@
                         <span class="message-time">${formattedDate} ${formattedTime}</span>
                     </div>
                     <div class="message ${messageClass}" id="msg-${messageClass}">
-                        <span class="message-text">${message.message}</span>
                         ${message.media_url ? getMediaHTML(message.media_url) : ''}
+                        <span class="message-text">${message.message}</span>
                         ${messageButtons} <!-- Only show buttons for sender's own messages -->
                     </div>
                 </div>
@@ -556,10 +669,23 @@
         }
     }
 
+    let scrollUpCount = 0;
+
     // Detect scrolling to the top
     chatContainer.addEventListener("scroll", function () {
         if (chatContainer.scrollTop === 0) {
             loadMessages();
+        }
+
+        if (chatContainer.scrollTop < chatContainer.scrollHeight - chatContainer.clientHeight - 50) {
+            scrollCount++;
+            console.log("Scroll count", scrollCount);
+            if (scrollCount >= 20) {
+                hardScrollBtn.style.display = "block"; // Show button when scrolling up    
+            }
+        } else {
+            hardScrollBtn.style.display = "none"; // Hide if already at bottom
+            scrollCount = 0;
         }
     });
 
@@ -567,11 +693,24 @@
     //Load initial messages when the page loads
     document.addEventListener("DOMContentLoaded", () => {
         loadMessages();
+
+        // Scroll to the bottom of the chat container
+        setTimeout(function () {
+            $('#chat-messages').animate({ scrollTop: $('#chat-messages')[0].scrollHeight }, 500);
+        }, 1000); // Small delay to ensure messages are loaded before scrolling
+
+        scrollCount = 0;
     });
 
 
     // Refresh button
     //document.getElementById('refresh-chat').addEventListener('click', loadMessages);
+
+    // Click to scroll to bottom
+    hardScrollBtn.addEventListener("click", function () {
+        $("#chat-messages").animate({ scrollTop: $("#chat-messages")[0].scrollHeight }, 500);
+        hardScrollBtn.style.display = "none"; // Hide after scrolling down
+    });
 
 </script>
 
@@ -617,6 +756,7 @@
         document.querySelectorAll(".chat").forEach(chat => {
             chat.addEventListener("click", function () {
                 let userId = this.getAttribute("data-user-id");
+                let baseURL = "{{ url('/') }}";
                 if (userId) {
                     window.location.href = `/chat/${userId}`;
                 }

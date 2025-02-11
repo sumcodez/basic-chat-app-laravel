@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/connect/end/{connection_id}', [ConnectionController::class, 'endChat'])->name('connect.end');
 
     Route::get('/chat/{user}', [ChatController::class, 'showChat'])->name('chat.show');
+    Route::get('/chats', [ChatController::class, 'showAllChats'])->name('chats.all');
 
     Route::post('/api/send-message', [ChatController::class, 'sendMessage']);
     Route::get('/api/messages/{userId}/{chatUserId}', [ChatController::class, 'getMessages']);
